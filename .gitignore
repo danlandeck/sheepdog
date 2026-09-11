@@ -1,0 +1,6 @@
+node_modules/
+server/data/
+*.zip
+.DS_Store
+public/
+dist/
