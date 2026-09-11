@@ -1,0 +1,115 @@
+# Publishes the scored feed as static files to GitHub Pages.
+#
+# This is the whole backend. There is no server: a scheduled job fetches the
+# sources once, scores everything, and writes JSON that Pages serves from a CDN.
+# Extensions read those files directly. Cost is zero on a public repository, and
+# nothing runs between publishes.
+#
+# Setup, once:
+#   1. Push this repository to GitHub (public, so Pages and Actions are free).
+#   2. Settings > Pages > Source: "GitHub Actions".
+#   3. Actions tab > "Publish feed" > Run workflow, to publish immediately.
+#   4. Your feed lives at https://<user>.github.io/<repo>/feed.json
+#      Build the extension against it:
+#        node scripts/build-release.mjs --feed https://<user>.github.io/<repo>
+#
+# Note: GitHub disables scheduled workflows on repositories with no activity for
+# 60 days, and re-enables them on the next push. If the feed goes stale, check
+# the Actions tab first.
+
+name: Publish feed
+
+on:
+  schedule:
+    # Every four hours. Regulator feeds do not move faster than this, and a
+    # tighter schedule mostly republishes identical bytes.
+    - cron: '17 */4 * * *'
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - 'shared/**'
+      - 'server/**'
+      - '.github/workflows/publish-feed.yml'
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: publish-feed
+  cancel-in-progress: false
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      # The store carries items and derived enforcement entries between runs, so
+      # the regulatory index keeps growing instead of starting empty each time.
+      - name: Restore previous store
+        uses: actions/cache/restore@v4
+        with:
+          path: server/data
+          key: sheepdog-store-${{ github.run_id }}
+          restore-keys: sheepdog-store-
+
+      - name: Sync shared modules
+        run: node scripts/sync-shared.mjs
+
+      - name: Run tests
+        run: node --test "test/*.test.js"
+
+      - name: Fetch, score and publish
+        # Set these two in Settings > Secrets and variables > Actions > Variables,
+        # so the published privacy policy carries your name and contact address.
+        env:
+          PUBLISHER_NAME: ${{ vars.PUBLISHER_NAME }}
+          PUBLISHER_EMAIL: ${{ vars.PUBLISHER_EMAIL }}
+        run: node server/scripts/publish-feed.mjs --out public
+
+      - name: Report source health
+        run: |
+          node -e "
+            const h = require('./public/health.json');
+            console.log(\`\${h.sourcesHealthy}/\${h.sourcesTotal} sources healthy, \${h.itemsPublished} items published\`);
+            for (const s of h.sources.filter(s => !s.ok)) console.log('  FAILING:', s.id, '-', s.error);
+          "
+
+      - name: Fail if every source is down
+        run: |
+          node -e "
+            const h = require('./public/health.json');
+            if (h.sourcesHealthy === 0) {
+              console.error('Every source failed. Not publishing an empty feed over a good one.');
+              process.exit(1);
+            }
+          "
+
+      - name: Save store
+        uses: actions/cache/save@v4
+        if: always()
+        with:
+          path: server/data
+          key: sheepdog-store-${{ github.run_id }}
+
+      - uses: actions/configure-pages@v5
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: public
+
+  deploy:
+    needs: publish
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4
