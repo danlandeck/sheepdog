@@ -1,0 +1,139 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Sheepdog settings</title>
+  <link rel="stylesheet" href="options.css">
+</head>
+<body>
+<main>
+  <div class="wordmark"><img src="../../assets/icon-128.png" alt=""><h1>Sheepdog</h1></div>
+  <div class="rule"></div>
+  <p class="lede">A live fraud-risk crawl for your browser. Every headline carries a score from 0 to 100 and opens a full breakdown of the signals behind it.</p>
+
+  <div id="welcome" class="callout" hidden>
+    <span id="welcomeBody"></span>
+  </div>
+
+  <section>
+    <h2>How it behaves</h2>
+    <div class="field">
+      <label for="mode">Mode</label>
+      <select id="mode">
+        <option value="guard">Guard — stay silent until something is wrong</option>
+        <option value="ticker">Ticker — show the scrolling news crawl</option>
+      </select>
+      <p class="hint" id="modeHint"></p>
+    </div>
+    <div class="field">
+      <button id="preview" class="btn">Show me what a warning looks like</button>
+      <p class="hint" id="previewResult">Adds one example warning, scored by the real engine on a real lookalike address. Switch to any open website tab to see it. It is not a site you visited.</p>
+    </div>
+  </section>
+
+  <section>
+    <h2 id="dataHeading">News feed</h2>
+    <p class="hint" id="feedInfo" hidden></p>
+    <div class="field" id="backendField">
+      <label for="backendUrl">Aggregation service address</label>
+      <div class="inline">
+        <input id="backendUrl" type="url" spellcheck="false" placeholder="http://localhost:8787">
+        <button id="test" class="btn">Test</button>
+      </div>
+    </div>
+    <p class="hint" id="testResult">Not checked yet.</p>
+    <div class="field">
+      <label for="pollMinutes">Refresh interval</label>
+      <select id="pollMinutes">
+        <option value="5">Every 5 minutes</option>
+        <option value="15">Every 15 minutes</option>
+        <option value="30">Every 30 minutes</option>
+        <option value="60">Hourly</option>
+      </select>
+    </div>
+  </section>
+
+  <section>
+    <h2>Appearance</h2>
+    <div class="grid">
+      <div class="field">
+        <label for="position">Position</label>
+        <select id="position"><option value="bottom">Bottom of the window</option><option value="top">Top of the window</option></select>
+      </div>
+      <div class="field">
+        <label for="theme">Theme</label>
+        <select id="theme"><option value="dark">Dark</option><option value="light">Light</option></select>
+      </div>
+      <div class="field">
+        <label for="speed">Crawl speed</label>
+        <select id="speed"><option value="slow">Slow</option><option value="normal">Normal</option><option value="fast">Fast</option></select>
+      </div>
+      <div class="field">
+        <label for="minBand">Show items at or above</label>
+        <select id="minBand">
+          <option value="low">Low risk (everything)</option>
+          <option value="elevated">Elevated</option>
+          <option value="high">High</option>
+          <option value="severe">Severe only</option>
+        </select>
+      </div>
+    </div>
+    <label class="check"><input type="checkbox" id="reserveSpace"> Push page content up instead of overlaying it</label>
+    <p class="hint">The crawl pauses whenever your pointer is over it. Alt+Shift+S hides or shows it on the current page.</p>
+  </section>
+
+  <section>
+    <h2>Live analysis</h2>
+    <label class="check"><input type="checkbox" id="siteAssessment"> Assess the site in the active tab</label>
+    <p class="hint" id="hintSite"></p>
+
+    <label class="check"><input type="checkbox" id="deepPageAnalysis"> Also analyze visible page text <span class="tag">off by default</span></label>
+    <p class="hint" id="hintDeep"></p>
+
+    <label class="check"><input type="checkbox" id="extensionAudit"> Audit your installed extensions every 12 hours</label>
+    <p class="hint" id="hintAudit"></p>
+
+    <div class="field">
+      <label for="alertThreshold">Alert threshold <span id="threshVal" class="tag">50</span></label>
+      <input id="alertThreshold" type="range" min="20" max="90" step="5">
+      <p class="hint">A live site or extension only enters the crawl once it scores at or above this.</p>
+    </div>
+
+    <div class="field">
+      <label for="blocklist">Never run on these domains</label>
+      <textarea id="blocklist" rows="3" spellcheck="false" placeholder="mybank.com&#10;internal.corp"></textarea>
+      <p class="hint">One domain per line. Subdomains are covered automatically.</p>
+    </div>
+  </section>
+
+  <section>
+    <h2>Sources</h2>
+    <p class="hint">Mute a source to drop it from the crawl. Muting happens in your browser and changes nothing for anyone else.</p>
+    <div id="sources" class="sources"><span class="hint">Loading the source list…</span></div>
+  </section>
+
+  <section>
+    <h2>What this cannot do</h2>
+    <p class="hint">
+      A Chrome extension is sandboxed to the browser. It cannot enumerate the software installed on your operating system, read files, or see traffic from other applications, so the structural pass covers the browser's own attack surface: the site you are on and the extensions you have installed. That is also where most consumer-facing compromise actually happens. Reaching the OS would require a companion native application and a separate, explicit install.
+    </p>
+    <p class="hint">
+      Scores are screening signals produced by pattern analysis and list matching. They are not verdicts about any person or company, and nothing here is legal or financial advice.
+    </p>
+  </section>
+
+  <section>
+    <h2>About</h2>
+    <p class="hint">
+      Sheepdog&trade; &mdash; scam and fraud warnings that explain themselves.<br>
+      &copy; 2026 Daniel Landeck. Open source under the Apache License 2.0.<br>
+      Built in Seattle.
+    </p>
+  </section>
+
+  <div class="savebar"><span id="saved" class="saved"></span></div>
+</main>
+<script src="options.js"></script>
+</body>
+</html>

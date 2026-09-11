@@ -1,0 +1,42 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Sheepdog</title>
+  <link rel="stylesheet" href="popup.css">
+</head>
+<body>
+  <header>
+    <div class="brand"><span id="dot" class="dot"></span><b>Sheepdog</b></div>
+    <label class="switch" title="Turn the ticker on or off everywhere">
+      <input type="checkbox" id="enabled"><span class="slider"></span>
+    </label>
+  </header>
+
+  <div id="status" class="status">Connecting…</div>
+
+  <nav class="tabs" role="tablist">
+    <button class="tab is-active" data-tab="top" role="tab">Highest risk</button>
+    <button class="tab" data-tab="ext" role="tab">Your extensions</button>
+  </nav>
+
+  <section id="pane-top" class="pane">
+    <div id="list" class="list"><div class="muted">Loading…</div></div>
+  </section>
+
+  <section id="pane-ext" class="pane" hidden>
+    <div class="row">
+      <button id="audit" class="btn">Re-run audit</button>
+      <span id="auditWhen" class="muted"></span>
+    </div>
+    <div id="extList" class="list"><div class="muted">No audit has run yet.</div></div>
+  </section>
+
+  <footer>
+    <button id="refresh" class="link">Refresh feed</button>
+    <button id="options" class="link">Settings</button>
+  </footer>
+
+  <script src="popup.js"></script>
+</body>
+</html>

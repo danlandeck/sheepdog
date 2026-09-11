@@ -1,0 +1,21 @@
+{
+  "name": "sheepdog-server",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Feed aggregation and risk scoring service for the Sheepdog Chrome extension.",
+  "license": "Apache-2.0",
+  "main": "src/index.js",
+  "engines": {
+    "node": ">=18.17"
+  },
+  "scripts": {
+    "start": "node src/index.js",
+    "dev": "node --watch src/index.js",
+    "ingest": "node scripts/ingest-once.mjs",
+    "seed:demo": "node scripts/seed-demo.mjs",
+    "check-sources": "node scripts/check-sources.mjs",
+    "test": "node --test test/"
+  },
+  "dependencies": {}
+}

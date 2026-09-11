@@ -1,0 +1,22 @@
+[
+  {
+    "list": "SEED_PATTERNS",
+    "entity": "Advance Fee Loan Broker",
+    "aliases": [],
+    "domains": [],
+    "action": "Placeholder seed entry. Replace this file with your own curated entries.",
+    "severity": "low",
+    "date": "2026-01-01",
+    "url": null
+  },
+  {
+    "list": "SEED_TEST",
+    "entity": "Example Fraud Corp",
+    "aliases": ["Example Fraud"],
+    "domains": ["example-fraud-corp.test"],
+    "action": "Test entry used by the unit tests to prove domain matching works. Harmless to leave in place.",
+    "severity": "high",
+    "date": "2026-01-01",
+    "url": null
+  }
+]
