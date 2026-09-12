@@ -261,7 +261,7 @@
         <div class="viewport"><div class="track"></div></div>
         <div class="ctrls">
           <span class="legend" title="Risk scale: green is lowest, red is highest">
-            <i style="background:#16a34a"></i><i style="background:#f59e0b8"></i><i style="background:#f97316"></i><i style="background:#dc2626"></i>
+            <i style="background:#16a34a"></i><i style="background:#f59e0b"></i><i style="background:#f97316"></i><i style="background:#dc2626"></i>
           </span>
           <span class="count"></span>
           <button class="btn" data-a="pause" title="Pause the crawl" aria-label="Pause the crawl">❚❚</button>
