@@ -63,7 +63,7 @@ export const SOURCES = [
     type: 'rss',
     enforcement: false,
     verified: false,
-    note: 'Refused an automated client during development. Confirm from your own host.',
+    note: 'Rejects some automated clients. Verify from your own host with check-sources.',
     weightHint: 'primary',
   },
   {
@@ -73,7 +73,7 @@ export const SOURCES = [
     type: 'rss',
     enforcement: true,
     verified: false,
-    note: 'Refused an automated client during development. Confirm from your own host.',
+    note: 'Rejects some automated clients. Verify from your own host with check-sources.',
     weightHint: 'primary',
   },
   {
@@ -116,7 +116,7 @@ export const LIST_SOURCES = [
     url: 'https://www.cisa.gov/sites/default/files/feeds/known_exploited_vulnerabilities.json',
     type: 'json',
     verified: false,
-    note: 'Refused an automated client during development. Confirm from your own host.',
+    note: 'Rejects some automated clients. Verify from your own host with check-sources.',
     /** Map the KEV catalog into regulatory index entries. */
     map: (json) =>
       (json?.vulnerabilities || []).slice(0, 4000).map((v) => ({
