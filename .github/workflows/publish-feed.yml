@@ -1,21 +1,22 @@
 # Publishes the scored feed as static files to GitHub Pages.
 #
-# This is the whole backend. There is no server: a scheduled job fetches the
-# sources once, scores everything, and writes JSON that Pages serves from a CDN.
-# Extensions read those files directly. Cost is zero on a public repository, and
-# nothing runs between publishes.
+# This is the entire backend. There is no server anywhere: a scheduled job fetches
+# the sources once, scores them with the same engine the extension runs, and writes
+# JSON that Pages serves from a CDN. Installed extensions read those files directly,
+# so no request from a user ever reaches a machine that belongs to this project.
 #
-# Setup, once:
-#   1. Push this repository to GitHub (public, so Pages and Actions are free).
-#   2. Settings > Pages > Source: "GitHub Actions".
-#   3. Actions tab > "Publish feed" > Run workflow, to publish immediately.
-#   4. Your feed lives at https://<user>.github.io/<repo>/feed.json
-#      Build the extension against it:
-#        node scripts/build-release.mjs --feed https://<user>.github.io/<repo>
+# Published to <pages-url>/ :
+#   feed.json         the scored crawl
+#   items/<id>.json   one file per item, holding the full signal breakdown
+#   lists.json        the regulatory index, so scoring also works offline
+#   health.json       per-source status
+#   privacy.html      the privacy policy
 #
-# Note: GitHub disables scheduled workflows on repositories with no activity for
-# 60 days, and re-enables them on the next push. If the feed goes stale, check
-# the Actions tab first.
+# PUBLISHER_NAME and PUBLISHER_EMAIL are repository variables, read only to fill in
+# the contact line of the published privacy policy.
+#
+# Scheduled workflows are disabled by GitHub after 60 days without repository
+# activity and resume on the next push.
 
 name: Publish feed
 
@@ -67,8 +68,6 @@ jobs:
         run: node --test "test/*.test.js"
 
       - name: Fetch, score and publish
-        # Set these two in Settings > Secrets and variables > Actions > Variables,
-        # so the published privacy policy carries your name and contact address.
         env:
           PUBLISHER_NAME: ${{ vars.PUBLISHER_NAME }}
           PUBLISHER_EMAIL: ${{ vars.PUBLISHER_EMAIL }}
