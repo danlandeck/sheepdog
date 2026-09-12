@@ -25,7 +25,7 @@ import { crossReference } from './regulatory.js';
 
 export const BANDS = [
   { id: 'low',      min: 0,  label: 'Low',      color: '#16a34a', text: '#062e13' },
-  { id: 'elevated', min: 25, label: 'Elevated', color: '#eab308', text: '#2a2000' },
+  { id: 'elevated', min: 25, label: 'Elevated', color: '#f59e0b', text: '#2a2000' },
   { id: 'high',     min: 50, label: 'High',     color: '#f97316', text: '#2b1200' },
   { id: 'severe',   min: 75, label: 'Severe',   color: '#dc2626', text: '#ffffff' },
 ];
