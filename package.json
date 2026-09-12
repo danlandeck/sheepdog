@@ -1,6 +1,6 @@
 {
   "name": "sheepdog",
-  "version": "0.1.0",
+  "version": "1.0.0",
   "private": true,
   "type": "module",
   "description": "A live fraud-risk crawl for Chrome, with a click-through breakdown behind every score.",
