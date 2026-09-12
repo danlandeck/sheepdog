@@ -142,4 +142,4 @@ Nothing to install first. Node 18.17 or newer is the only requirement.
 
 To run the collector locally instead of reading the published feed, start `node server/src/index.js` and point the extension's settings at it. To check whether every news source is still reachable, run `node server/scripts/check-sources.mjs`.
 
-**Publishing a build to the Chrome Web Store is documented in `PUBLISH.md`.**
+To build an installable package, run scripts/build-release.mjs with a --feed address and a --version. It bakes the feed address into the bundle, refuses anything that is not HTTPS, and validates the result before packaging.
