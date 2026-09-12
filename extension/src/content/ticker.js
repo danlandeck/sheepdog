@@ -73,13 +73,13 @@
   --dim: #8b98a5;
   --line: #223041;
   --accent: #A78BFA;          /* light violet, 7.1:1 on the dark ground */
-  --brand: #4B0082;           /* indigo, deeper than UW purple and higher contrast */
+  --brand: #5B12C4;           /* brand violet-indigo */
   --brand-fg: #ffffff;        /* white on indigo is 13.0:1 */
   contain: layout style;
 }
 .wrap[data-theme="light"] {
   --bg: #ffffff; --bg2: #f2f5f8; --fg: #16202b; --dim: #5c6b7a; --line: #d7dee6;
-  --accent: #4B0082; --brand: #4B0082; --brand-fg: #ffffff;
+  --accent: #5B12C4; --brand: #5B12C4; --brand-fg: #ffffff;
 }
 .wrap[data-pos="bottom"] { bottom: 0; }
 .wrap[data-pos="top"] { top: 0; }
@@ -261,7 +261,7 @@
         <div class="viewport"><div class="track"></div></div>
         <div class="ctrls">
           <span class="legend" title="Risk scale: green is lowest, red is highest">
-            <i style="background:#16a34a"></i><i style="background:#eab308"></i><i style="background:#f97316"></i><i style="background:#dc2626"></i>
+            <i style="background:#16a34a"></i><i style="background:#f59e0b8"></i><i style="background:#f97316"></i><i style="background:#dc2626"></i>
           </span>
           <span class="count"></span>
           <button class="btn" data-a="pause" title="Pause the crawl" aria-label="Pause the crawl">❚❚</button>
