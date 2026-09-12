@@ -2,15 +2,15 @@
 /**
  * Build a Chrome Web Store submission zip.
  *
- * The unpacked extension defaults to http://localhost:8787, which is correct
- * for development and completely broken for anyone who installs from the store.
- * This script bakes in your real backend URL, so shipping a build that still
- * points at localhost is not something you can do by forgetting a step.
+ * The unpacked extension points at a local development server, which is correct
+ * while working on it and completely broken for anyone who installs from a store.
+ * This script bakes in the address the build should actually read from, so a
+ * package that still points at localhost cannot be produced by forgetting a step.
  *
- *   node scripts/build-release.mjs --backend https://ticker.example.com
- *   node scripts/build-release.mjs --backend https://ticker.example.com --version 1.0.0
+ *   node scripts/build-release.mjs --feed https://<user>.github.io/<repo>
+ *   node scripts/build-release.mjs --feed https://<user>.github.io/<repo> --version 1.0.0
  *
- * Output: dist/sheepdog-<version>.zip, ready to upload.
+ * Output: dist/sheepdog-<version>.zip.
  */
 
 import { readFile, writeFile, mkdir, rm, cp, readdir, stat } from 'node:fs/promises';
@@ -229,9 +229,9 @@ Built ${zipName}  (${entries} files, ${(size / 1024).toFixed(0)} KB)
 
 Upload that zip at https://chrome.google.com/webstore/devconsole
 
-Every field the store form asks for is in PUBLISH.md, ready to paste.
+Before submitting, have ready:
 
-  - privacy policy URL            published with your feed at /privacy.html
-  - single purpose + permissions  PUBLISH.md, step 5
+  - the privacy policy URL, published alongside the feed at /privacy.html
+  - a single purpose statement and a justification per permission
   - at least one 1280x800 screenshot
 `);
