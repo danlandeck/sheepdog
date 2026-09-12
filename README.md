@@ -40,7 +40,7 @@ Then it explains why, in sentences anyone can read. No scores to interpret and n
 
 ## Two things you can turn on
 
-**The news ticker.** If you want the news rather than only the warnings, switch to Ticker mode and a crawl of scored fraud and enforcement stories runs along the edge of the page, drawn from the Federal Trade Commission, the Securities and Exchange Commission, the Consumer Financial Protection Bureau, the FBI's Internet Crime Complaint Center, and the security press. Every headline carries a risk score from 0 to 100 on a green to red scale, and clicking one opens the full reasoning behind it.
+**The news ticker.** If you want the news rather than only the warnings, switch to Ticker mode and a crawl of scored fraud and enforcement stories runs along the edge of the page, drawn from the Securities and Exchange Commission, the Consumer Financial Protection Bureau, the FBI's Internet Crime Complaint Center, the Cybersecurity and Infrastructure Security Agency, and the independent security press. Every headline carries a risk score from 0 to 100 on a green to red scale, and clicking one opens the full reasoning behind it.
 
 **A review of your other extensions.** Browser extensions get bought and repurposed, and the permissions you granted survive the sale. Sheepdog can review the ones you have installed and tell you what each one could do with the access it already holds. This asks your permission separately, at the moment you ask for it, and never at install time.
 
