@@ -1,9 +1,9 @@
 :root {
-  --bg: #0b0f14; --bg2: #121922; --fg: #e6edf3; --dim: #8b98a5; --line: #223041; --accent: #A78BFA; --brand: #4B0082;
+  --bg: #0b0f14; --bg2: #121922; --fg: #e6edf3; --dim: #8b98a5; --line: #223041; --accent: #A78BFA; --brand: #5B12C4;
   color-scheme: dark;
 }
 @media (prefers-color-scheme: light) {
-  :root { --bg: #fff; --bg2: #f2f5f8; --fg: #16202b; --dim: #5c6b7a; --line: #d7dee6; --accent: #4B0082; --brand: #4B0082; color-scheme: light; }
+  :root { --bg: #fff; --bg2: #f2f5f8; --fg: #16202b; --dim: #5c6b7a; --line: #d7dee6; --accent: #5B12C4; --brand: #5B12C4; color-scheme: light; }
 }
 * { box-sizing: border-box; }
 body {
