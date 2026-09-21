@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "Sheepdog Scam Alerts",
-  "version": "0.1.0",
+  "version": "1.0.1",
   "description": "Warns you when a site is impersonating your bank, and says so in plain English. All analysis happens on your own computer.",
   "minimum_chrome_version": "116",
   "permissions": [
