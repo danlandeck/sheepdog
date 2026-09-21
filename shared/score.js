@@ -131,18 +131,48 @@ export function assess(input = {}, regIndex = null) {
    * exceed 64 no matter how severe the incident. So inapplicable weight is
    * redistributed across the passes that did run.
    *
-   * An index that ran and found nothing IS applicable and correctly dilutes:
-   * we checked, and the subject was not listed. A near-empty index has not
-   * meaningfully checked anything, so it only counts once it either holds a
-   * real corpus or produces a match.
+   * For news, an index that ran and found nothing IS applicable and correctly
+   * dilutes: enforcement entries are derived from the same press corpus, so a
+   * defendant absent from it is weak evidence of nothing having happened.
+   *
+   * For a site or an extension it is not. The index holds enforcement names and
+   * known-exploited software, and has no coverage of hours-old lookalike
+   * domains at all. Counting a non-match there diluted every live warning by
+   * the regulatory weight and pushed genuine phishing below the alert
+   * threshold: a typosquat scoring 56 with no list loaded fell to 45 once a
+   * real list arrived, which silently disabled the product's main feature.
+   * Absence from a list that never covers this subject is not evidence, so the
+   * pass only counts for these kinds when it actually matches.
    */
+  const regulatoryChecksThisKind = kind === 'news'
+    ? (regulatory.listSize >= 50) || regulatory.matches.length > 0
+    : regulatory.matches.length > 0;
+
+  /*
+   * The same trap as the regulatory pass, in the behavioral one.
+   *
+   * A news item always arrives with a headline and summary, so behavioral
+   * silence there is a real finding: the prose is reportorial, not a pitch.
+   *
+   * A live site scan arrives with the tab's title and nothing else, because
+   * page-text analysis is off by default. "Sign in" is not a sample anyone can
+   * judge, but a non-empty string made the pass applicable, contribute zero,
+   * and still take 45% of the weight. A credential-harvesting lookalike with a
+   * structural score of 82 came out at 41 and stayed silent. So for sites and
+   * extensions the pass counts only when it had a real sample to read, or when
+   * it found something despite a short one.
+   */
+  const behavioralHadASample = kind === 'news'
+    ? text.trim().length > 0
+    : text.trim().length >= 80 || behavioral.score > 0;
+
   const applicable = {
-    behavioral: text.trim().length > 0,
+    behavioral: behavioralHadASample,
     incident: w.incident > 0 && text.trim().length > 0,
     structural: kind === 'extension'
       ? Object.keys(input.extensionInfo || {}).length > 0
       : Boolean(structural.host),
-    regulatory: (regulatory.listSize >= 50) || regulatory.matches.length > 0,
+    regulatory: regulatoryChecksThisKind,
   };
 
   const live = Object.entries(w).filter(([k, weight]) => weight > 0 && applicable[k]);
