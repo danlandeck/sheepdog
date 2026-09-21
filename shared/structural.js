@@ -31,6 +31,75 @@ const BRAND_TOKENS = [
   'linkedin', 'steam', 'roblox', 'docusign', 'dropbox', 'adobe', 'okta',
 ];
 
+/*
+ * Registrable domains the brands above actually operate.
+ *
+ * Several real sign-in domains carry their own brand name plus a suffix, which
+ * is exactly the shape the embedded-brand rule looks for: login.microsoftonline.com
+ * is "microsoft" glued inside the registered domain with the word "login" in
+ * front of it, and was being reported as "This site is pretending to be
+ * Microsoft" on the genuine Microsoft login page. Telling a user that their
+ * bank or their employer's sign-in page is a fake is the single most damaging
+ * thing this product can do, so the brand rules are skipped outright on a
+ * domain the brand is known to own.
+ *
+ * This is an allowlist, not a safety verdict: everything else about the
+ * hostname is still examined, and an absent brand simply gets the old
+ * behaviour.
+ */
+const BRAND_DOMAINS = {
+  paypal: ['paypal.com', 'paypal.me', 'paypalobjects.com'],
+  apple: ['apple.com', 'icloud.com', 'apple.news', 'applecard.apple'],
+  icloud: ['icloud.com', 'apple.com'],
+  microsoft: ['microsoft.com', 'microsoftonline.com', 'microsoft365.com', 'office.com', 'office365.com', 'live.com', 'msn.com', 'windows.com', 'azure.com', 'sharepoint.com', 'onedrive.com', 'skype.com', 'xbox.com', 'bing.com', 'msauth.net', 'msftauth.net'],
+  office365: ['office365.com', 'office.com', 'microsoft.com', 'microsoftonline.com'],
+  outlook: ['outlook.com', 'live.com', 'microsoft.com', 'office.com', 'microsoftonline.com', 'hotmail.com'],
+  google: ['google.com', 'googleapis.com', 'googleusercontent.com', 'gstatic.com', 'youtube.com', 'gmail.com', 'goo.gl', 'withgoogle.com'],
+  gmail: ['gmail.com', 'google.com', 'googlemail.com'],
+  amazon: ['amazon.com', 'amazonaws.com', 'aws.amazon.com', 'amazon.jobs', 'primevideo.com', 'audible.com', 'a2z.com'],
+  netflix: ['netflix.com', 'nflxext.com', 'nflximg.net'],
+  coinbase: ['coinbase.com', 'cbhq.net', 'coinbase.co.uk'],
+  binance: ['binance.com', 'binance.us', 'bnbchain.org'],
+  metamask: ['metamask.io', 'consensys.net'],
+  ledger: ['ledger.com', 'ledgerwallet.com'],
+  trezor: ['trezor.io', 'satoshilabs.com'],
+  chase: ['chase.com', 'jpmorganchase.com', 'jpmorgan.com', 'chasepaymentech.com'],
+  wellsfargo: ['wellsfargo.com', 'wf.com', 'wellsfargoadvisors.com'],
+  bankofamerica: ['bankofamerica.com', 'bofa.com', 'merrilledge.com', 'bankofamerica.net'],
+  citibank: ['citibank.com', 'citi.com', 'citigroup.com', 'citicards.com'],
+  usbank: ['usbank.com', 'usbank.net'],
+  americanexpress: ['americanexpress.com', 'amex.com', 'aexp.com'],
+  discover: ['discover.com', 'discovercard.com'],
+  venmo: ['venmo.com'],
+  zelle: ['zellepay.com'],
+  cashapp: ['cash.app', 'cashapp.com', 'square.com', 'block.xyz'],
+  robinhood: ['robinhood.com'],
+  fidelity: ['fidelity.com', 'fidelityinvestments.com', 'fmr.com'],
+  schwab: ['schwab.com', 'schwabinstitutional.com'],
+  vanguard: ['vanguard.com', 'vanguardinvestments.com'],
+  irs: ['irs.gov', 'irsvideos.gov'],
+  usps: ['usps.com', 'usps.gov', 'uspsoig.gov'],
+  ups: ['ups.com', 'upscapital.com'],
+  fedex: ['fedex.com'],
+  dhl: ['dhl.com', 'dhl.de'],
+  walmart: ['walmart.com', 'walmartone.com', 'wal.co'],
+  target: ['target.com', 'targetcorp.com'],
+  costco: ['costco.com', 'costcobusinessdelivery.com'],
+  instagram: ['instagram.com', 'facebook.com', 'meta.com', 'cdninstagram.com'],
+  facebook: ['facebook.com', 'fb.com', 'meta.com', 'fbcdn.net', 'messenger.com'],
+  whatsapp: ['whatsapp.com', 'whatsapp.net', 'wa.me', 'meta.com'],
+  linkedin: ['linkedin.com', 'licdn.com', 'linkedin.cn'],
+  steam: ['steampowered.com', 'steamcommunity.com', 'valvesoftware.com'],
+  roblox: ['roblox.com', 'rbxcdn.com'],
+  docusign: ['docusign.com', 'docusign.net'],
+  dropbox: ['dropbox.com', 'dropboxusercontent.com', 'dropboxstatic.com'],
+  adobe: ['adobe.com', 'adobe.io', 'adobelogin.com', 'behance.net', 'typekit.com'],
+  okta: ['okta.com', 'oktapreview.com', 'okta-emea.com', 'oktacdn.com'],
+};
+
+/** Flat lookup of every registrable domain any listed brand is known to run. */
+const BRAND_OWNED_DOMAINS = new Set(Object.values(BRAND_DOMAINS).flat());
+
 const LURE_TOKENS = [
   'login', 'signin', 'verify', 'verification', 'secure', 'security', 'account',
   'update', 'confirm', 'billing', 'invoice', 'payment', 'refund', 'support',
@@ -147,8 +216,18 @@ export function analyzeDomain(info = {}) {
   const flat = deglyph(sld);
   const segments = [flat, ...sld.split(/[^a-z0-9]+/i).map(deglyph)].filter((x) => x.length >= 4);
 
+  /*
+   * A domain the brand itself runs is never impersonating that brand. Checked
+   * before any brand rule so that a genuine sign-in host such as
+   * login.microsoftonline.com or id.apple.com cannot be reported as a fake.
+   * Everything below this point still applies: an allowlisted registrable
+   * domain is not a clean bill of health, only an answer to "is this the
+   * brand's own address".
+   */
+  const brandOwned = BRAND_OWNED_DOMAINS.has(registrable);
+
   brandLoop:
-  for (const brand of BRAND_TOKENS) {
+  for (const brand of brandOwned ? [] : BRAND_TOKENS) {
     if (brand.length < 5) continue;
     const allowed = brand.length >= 8 ? 2 : 1;
 
@@ -187,7 +266,7 @@ export function analyzeDomain(info = {}) {
 
   // Brand token parked in a subdomain (paypal.com.secure-verify.xyz)
   const subJoined = subdomains.join('.');
-  const subBrand = BRAND_TOKENS.find((b) => b.length >= 5 && subJoined.includes(b));
+  const subBrand = brandOwned ? null : BRAND_TOKENS.find((b) => b.length >= 5 && subJoined.includes(b));
   if (subBrand) {
     add(28, 'Brand name in subdomain', `"${subBrand}" appears only in the subdomain. The domain actually being visited is ${registrable}.`, { id: 'brand_subdomain', brand: subBrand, registrable });
   }
