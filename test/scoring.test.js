@@ -6,6 +6,7 @@ import { analyzeIncident } from '../shared/incident.js';
 import { analyzeDomain, analyzeExtension, parseHost } from '../shared/structural.js';
 import { buildIndex, crossReference, deriveEntriesFromEnforcement } from '../shared/regulatory.js';
 import { assess, bandFor, explain } from '../shared/score.js';
+import { plainWarning } from '../shared/plain.js';
 
 /* --------------------------------------------------------------- behavioral */
 
@@ -386,4 +387,82 @@ test('brand matching does not accuse legitimate businesses', () => {
       .find((f) => ['lookalike', 'brand_embedded'].includes(f.meta?.id));
     assert.equal(f, undefined, `false accusation against ${host}: ${f?.label}`);
   }
+});
+
+/*
+ * Regression: a brand's own sign-in host is not an impersonation of that brand.
+ *
+ * login.microsoftonline.com is "microsoft" embedded in the registered domain
+ * with the word "login" in front of it, which is the exact shape the
+ * embedded-brand rule hunts for. A live browser sweep had Sheepdog telling the
+ * user that the genuine Microsoft login page was "pretending to be Microsoft",
+ * the most damaging thing this product can do, because the next real warning
+ * gets ignored. These hosts must stay quiet.
+ */
+test('a brand\'s own sign-in hosts are never reported as impersonations', () => {
+  const hosts = [
+    'login.microsoftonline.com',
+    'login.live.com',
+    'signin.aws.amazon.com',
+    'id.apple.com',
+    'idmsa.apple.com',
+    'accounts.google.com',
+    'secure.bankofamerica.com',
+    'secure.chase.com',
+    'login.salesforce.okta.com',
+    'verify.paypal.com',
+    'account.venmo.com',
+    'signin.ebay.co.uk',
+  ];
+  for (const host of hosts) {
+    const r = analyzeDomain({ host, protocol: 'https' });
+    const accused = r.findings.find((f) => ['lookalike', 'brand_embedded', 'brand_subdomain'].includes(f.meta?.id));
+    assert.equal(accused, undefined, `false accusation against ${host}: ${accused?.label}`);
+
+    const result = assess({ kind: 'site', url: `https://${host}/`, title: 'Sign in', source: 'PAGE_SCAN' }, buildIndex([]));
+    assert.ok(result.score < 50, `${host} scored ${result.score}, which warns the user about a real sign-in page`);
+    assert.equal(plainWarning(result).urgent, false, `${host} raised an urgent warning`);
+  }
+});
+
+/*
+ * Regression: a loaded regulatory index must not silently disable live warnings.
+ *
+ * Every earlier calibration here ran against an empty index. In production the
+ * extension downloads a real one (hundreds of CISA and enforcement entries),
+ * which made the regulatory pass "applicable", contribute zero for a lookalike
+ * domain it could never have covered, and still take its weight. A typosquat
+ * that scored 56 (high, warns) in these tests scored 45 (elevated, silent) on a
+ * real install, so the product's main feature did nothing. The size of the
+ * index must not change the verdict on a site it does not list.
+ */
+test('a live site warning survives a populated regulatory index', () => {
+  const noise = Array.from({ length: 723 }, (_, i) => ({
+    list: 'CISA_KEV', entity: `Vendor Product ${i}`, domains: [],
+    action: 'Known exploited vulnerability', severity: 'medium', date: '2026-01-01',
+  }));
+  const input = {
+    kind: 'site',
+    title: 'Sign in to your account',
+    body: 'Your account has been suspended due to unusual sign-in activity. Verify your account and confirm your password within 24 hours.',
+    source: 'PAGE_SCAN',
+    domainInfo: { host: 'paypa1-secure-login.top', protocol: 'https' },
+  };
+
+  const bare = assess(input, buildIndex([]));
+  const loaded = assess(input, buildIndex(noise));
+
+  assert.equal(loaded.band, bare.band,
+    `band changed with a loaded index: ${bare.band} -> ${loaded.band}`);
+  assert.ok(loaded.score >= 50,
+    `a credential-harvesting lookalike must stay in the high band, got ${loaded.score}`);
+  assert.equal(plainWarning(loaded, { host: 'paypa1-secure-login.top' }).urgent, true,
+    'the warning must still be urgent, or guard mode shows nothing');
+
+  // And the index must still be able to raise a score when it does match.
+  const listed = assess(input, buildIndex([{
+    list: 'FTC_ENFORCEMENT', entity: 'Paypa1 Secure Login',
+    domains: ['paypa1-secure-login.top'], action: 'FTC action', severity: 'high', date: '2026-01-01',
+  }]));
+  assert.ok(listed.score >= 78, `a listed domain must floor at 78, got ${listed.score}`);
 });
