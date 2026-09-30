@@ -8,11 +8,11 @@ Sheepdog™ · Copyright © 2026 Daniel Landeck · Free and open source under th
 
 ## Install
 
-**Sheepdog is awaiting review at the Chrome Web Store.** The install link goes here as soon as it is approved.
+**[Add Sheepdog to your browser](https://chromewebstore.google.com/detail/ikcehkgodhpojleneblggmniofmhlkdl)**. Free, with no paid tier, no upsell and no advertising.
 
-It will be free, with no paid tier, no upsell and no advertising.
+One click from the Chrome Web Store, on Chrome, Edge, Brave or any other Chromium browser. Nothing to download, no account, and nothing to configure. It works the moment it is added and updates itself.
 
-When it is live, installing is one click from the store, on Chrome, Edge, Brave or any other Chromium browser. Nothing to download, no account, and nothing to configure. It works the moment it is added and updates itself.
+Sheepdog watches pages loaded after it is installed, so reload any tabs you already had open.
 
 ---
 
@@ -97,7 +97,7 @@ Three decisions worth knowing about:
 
 **Source confidence multiplies, it does not add.** An early version added points for publisher authority, which gave a routine FTC notice about a comment period the same score as an SEC Ponzi charge. Publisher authority tells you how much to trust a finding, not how dangerous the subject is.
 
-**Weights renormalize over the passes that could actually run.** A pass with nothing to examine is absence of evidence, not evidence of safety. Inapplicable weight is redistributed, while a list that ran and found nothing still correctly dilutes. The detail panel shows each pass's effective share for that specific item.
+**Weights renormalize over the passes that could actually run.** A pass with nothing to examine is absence of evidence, not evidence of safety, so inapplicable weight is redistributed rather than silently capping the score. What counts as applicable depends on the subject: for a news story, an enforcement list that ran and found nothing is a real finding and correctly dilutes, because enforcement entries come from the same corpus the story does. For a live site it is not, because those lists have no coverage of a lookalike domain registered this morning, and counting the non-match there pushed genuine phishing below the alert threshold. The same rule governs the behavioral pass, which needs an actual sample of text before its silence means anything. The detail panel shows each pass's effective share for that specific item.
 
 **Behavioral and incident are different questions.** The behavioral lexicon detects what a scam sounds like ("guaranteed returns", "act now", "gift cards only"). A news article describing a scam is written in reportorial prose and trips almost none of it, so a separate pass scores what the article is about: indictments, asset freezes, active exploitation, funds drained, victim counts, dollar magnitude. Procedural language such as comment periods and rulemaking carries negative weight and pulls administrative noise back to zero.
 
@@ -134,7 +134,7 @@ scripts/
 
 ```bash
 node scripts/sync-shared.mjs          # after any change to /shared
-node --test "test/*.test.js"          # 58 tests
+node --test "test/*.test.js"          # 60 tests
 node scripts/validate-extension.mjs   # pre-flight before loading in Chrome
 ```
 
