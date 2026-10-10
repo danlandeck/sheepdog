@@ -1,0 +1,29 @@
+/* Layered on options.css, which supplies the palette and the base controls. */
+.big { font-size: 26px; margin: 0 0 10px; letter-spacing: -.01em; }
+.lede { font-size: 15px; color: var(--fg); }
+main p { margin: 0 0 12px; }
+main a { color: var(--accent); }
+
+.data { width: 100%; border-collapse: collapse; font-size: 13px; }
+.data th { text-align: left; font-size: 11px; letter-spacing: .08em; text-transform: uppercase; color: var(--dim); padding: 0 12px 8px 0; }
+.data td { vertical-align: top; padding: 12px 12px 12px 0; border-top: 1px solid var(--line); }
+.data td:first-child { width: 26%; }
+.data td:last-child { width: 34%; padding-right: 0; }
+.data .tag { margin-top: 6px; }
+
+.never { margin: 0 0 12px; padding-left: 20px; }
+.never li { margin-bottom: 6px; }
+
+.decide { border-top: 3px solid var(--brand); }
+.actions { display: flex; flex-wrap: wrap; gap: 10px; margin: 16px 0 10px; }
+.actions .btn { padding: 11px 18px; font-size: 14px; font-weight: 600; }
+.btn.primary { background: var(--brand); border-color: var(--brand); color: #fff; }
+.btn.primary:hover { filter: brightness(1.12); }
+.btn:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
+.btn[disabled] { opacity: .55; cursor: default; }
+
+@media (max-width: 640px) {
+  .data thead { display: none; }
+  .data td { display: block; width: auto !important; padding: 6px 0; border-top: 0; }
+  .data tr { display: block; border-top: 1px solid var(--line); padding: 10px 0; }
+}

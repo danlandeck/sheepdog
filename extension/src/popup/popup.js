@@ -29,12 +29,23 @@ function entry(i) {
   </div>`;
 }
 
+let feedMode = 'service';
+
 async function loadFeed() {
   const p = await send({ type: 'TICKER_INIT' });
   if (!p) { $('#status').textContent = 'Service worker did not respond. Reload the extension.'; return; }
 
+  // Until the user has agreed, the popup has one job: say so, and offer the
+  // way to the page that explains what they would be agreeing to.
+  const off = p.consent !== 'granted';
+  $('#gate').hidden = !off;
+  $('#main').hidden = off;
+  $('.switch').hidden = off;
+  $('#dot').dataset.s = off ? 'unknown' : (p.status.backend || 'unknown');
+  if (off) return;
+
+  feedMode = p.settings.feedMode;
   $('#enabled').checked = !!p.settings.enabled;
-  $('#dot').dataset.s = p.status.backend || 'unknown';
 
   const parts = [];
   parts.push(p.status.backend === 'online' ? 'Backend online' : `Backend offline (${p.status.lastError || 'unreachable'})`);
@@ -67,7 +78,13 @@ async function loadAudit(force) {
   if (force) {
     const ok = await ensureManagementPermission();
     if (!ok) {
-      wrap.innerHTML = '<div class="muted">Sheepdog needs permission to read your installed extensions before it can audit them. Nothing about them leaves your browser except each one\'s name and permission list.</div>';
+      // Where the review happens differs by build, and this sentence is a
+      // statement about the user's data, so it has to match the build.
+      wrap.innerHTML = `<div class="muted">Sheepdog needs permission to read your installed extensions before it can review them. ${
+        feedMode === 'static'
+          ? 'The review happens on your own computer and nothing about your extensions is sent anywhere.'
+          : 'This is a self-hosted build: each extension\'s details are sent to the collector you configured.'
+      }</div>`;
       return;
     }
     $('#audit').disabled = true;
@@ -116,6 +133,10 @@ $('#refresh').addEventListener('click', async () => {
   loadFeed();
 });
 $('#options').addEventListener('click', () => chrome.runtime.openOptionsPage());
+$('#openConsent').addEventListener('click', async () => {
+  await send({ type: 'OPEN_CONSENT' });
+  window.close();
+});
 $('#audit').addEventListener('click', () => loadAudit(true));
 
 loadFeed();

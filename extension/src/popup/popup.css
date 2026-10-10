@@ -50,3 +50,8 @@ header { display: flex; align-items: center; justify-content: space-between; pad
 footer { display: flex; gap: 14px; padding: 10px 14px; border-top: 1px solid var(--line); }
 .link { appearance: none; border: 0; background: transparent; color: var(--accent); font: inherit; font-size: 12px; cursor: pointer; padding: 0; }
 .link:hover { text-decoration: underline; }
+
+.gate { padding: 18px 14px 20px; }
+.gate p { margin: 0 0 10px; }
+.btn.primary { background: var(--brand); border-color: var(--brand); color: #fff; padding: 8px 14px; font-weight: 600; }
+.switch[hidden] { display: none; }

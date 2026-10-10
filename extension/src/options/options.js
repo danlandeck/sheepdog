@@ -46,7 +46,7 @@ const MODE_HINT = {
 const COPY = {
   static: {
     heading: 'News feed',
-    welcome: '<b>Sheepdog is on.</b> There is nothing to set up. It stays out of your way until a site or an extension looks dangerous, and everything below is optional.',
+    welcome: '<b>Sheepdog is on.</b> Thank you. There is nothing to set up. It stays out of your way until a site or an extension looks dangerous, and everything below is optional.',
     site: 'The address of the tab you are on is checked on your own computer, against patterns and public enforcement lists held inside the extension. Nothing about the page is sent anywhere. A site scoring above your alert threshold raises a warning.',
     deep: 'Reads up to 20,000 characters of the page\'s visible text and scores it on your own computer, in memory. The text is never transmitted and never stored. Leave this off for any site where you handle confidential material.',
     audit: 'Reads the permissions your other extensions already hold and scores what a compromised or sold-on version of each could do. This runs entirely in your browser. Nothing about your extensions is sent anywhere.',
@@ -185,7 +185,22 @@ $('#preview').addEventListener('click', async () => {
     : 'Could not add the example. Try reloading the extension at chrome://extensions.';
 });
 
+const CONSENT_URL = chrome.runtime.getURL('src/consent/consent.html');
+
+$('#reviewConsent').addEventListener('click', () => { location.href = `${CONSENT_URL}?review=1`; });
+$('#withdraw').addEventListener('click', async () => {
+  await send({ type: 'SET_CONSENT', granted: false });
+  location.replace(CONSENT_URL);
+});
+
 (async () => {
+  // Settings mean nothing while Sheepdog is off, and this page would otherwise
+  // try to reach the news feed. Send the user to the question instead.
+  const consent = await send({ type: 'GET_CONSENT' });
+  if (consent?.status !== 'granted') { location.replace(CONSENT_URL); return; }
+  $('#consentInfo').textContent =
+    `You agreed to how Sheepdog works${consent.at ? ` on ${new Date(consent.at).toLocaleDateString()}` : ''}.`;
+
   if (new URLSearchParams(location.search).get('welcome')) $('#welcome').hidden = false;
   fill(await send({ type: 'GET_SETTINGS' }));
   testBackend();

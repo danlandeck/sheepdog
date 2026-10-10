@@ -8,6 +8,11 @@
  * This script never reads page content unless deep page analysis is switched on
  * in settings, and even then it takes a bounded text sample and hands it
  * straight to the service worker.
+ *
+ * Until the user has agreed on the consent page, it does nothing at all. Chrome
+ * injects it regardless, so the first thing it does is ask the service worker
+ * whether consent exists. Without it, no element is added to the page, nothing
+ * on the page is read, and it simply waits in case the answer changes.
  */
 
 (() => {
@@ -20,8 +25,9 @@
   const HIDE_KEY = '__sheepdog_hidden__';
   const SPEEDS = { slow: 35, normal: 60, fast: 95 };       // pixels per second
 
-  let state = { settings: null, items: [], status: {} };
+  let state = { consent: 'undecided', settings: null, items: [], status: {} };
   let host, shadow, bar, track, panel, statusDot, countEl;
+  let built = false;
   let hidden = false;
   let panelOpenId = null;
 
@@ -287,12 +293,26 @@
     shadow.addEventListener('click', onGuardClick);
     track.addEventListener('click', onItemClick);
     panel.addEventListener('click', onPanelClick);
-    document.addEventListener('keydown', (e) => {
-      if (e.key === 'Escape' && panelOpenId) closePanel();
-    }, true);
 
+    built = true;
+    if (hidden) host.style.display = 'none';
     return wrap;
   }
+
+  /** Take the whole UI back out of the page, for when consent is withdrawn. */
+  function teardown() {
+    if (!built) return;
+    releaseSpace();
+    host.remove();
+    built = false;
+    panelOpenId = null;
+    manualPause = false;
+  }
+
+  // Registered once rather than in build(), which can run more than once.
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && built && panelOpenId) closePanel();
+  }, true);
 
   let manualPause = false;
 
@@ -628,6 +648,7 @@
   }
 
   async function maybeDeepScan() {
+    if (state.consent !== 'granted') return;
     if (!state.settings?.deepPageAnalysis) return;
     if (!/^https?:$/.test(location.protocol)) return;
     const bl = state.settings.blocklist || [];
@@ -645,7 +666,17 @@
 
   function apply(payload) {
     if (!payload) return;
-    state = { settings: payload.settings || state.settings, items: payload.items || [], status: payload.status || {} };
+
+    // No consent, no presence on the page. This is also the path taken when
+    // consent is withdrawn while the page is open.
+    if (payload.consent !== 'granted') {
+      state = { consent: payload.consent || 'undecided', settings: null, items: [], status: {} };
+      teardown();
+      return;
+    }
+
+    if (!built) build();
+    state = { consent: 'granted', settings: payload.settings || state.settings, items: payload.items || [], status: payload.status || {} };
     if (!state.settings?.enabled) { host.style.display = 'none'; releaseSpace(); return; }
     if (!hidden) host.style.display = '';
     renderChrome();
@@ -666,16 +697,15 @@
 
   chrome.runtime.onMessage.addListener((msg) => {
     if (msg?.type === 'TICKER_UPDATE') apply(msg);
+    if (!built) return;
     if (msg?.type === 'SETTINGS_CHANGED') { state.settings = msg.settings; renderChrome(); renderTrack(); applySpace(); }
     if (msg?.type === 'TOGGLE_VISIBILITY') (hidden ? show() : hide());
   });
 
-  window.addEventListener('pagehide', releaseSpace);
+  window.addEventListener('pagehide', () => { if (built) releaseSpace(); });
 
   (async () => {
     try { hidden = sessionStorage.getItem(HIDE_KEY) === '1'; } catch { /* ignore */ }
-    build();
-    if (hidden) host.style.display = 'none';
 
     // A cold service worker can miss the first message, which would leave an
     // empty bar until the next broadcast. Retry a couple of times, backing off.
