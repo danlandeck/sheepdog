@@ -1,0 +1,110 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Before Sheepdog turns on</title>
+  <link rel="stylesheet" href="../options/options.css">
+  <link rel="stylesheet" href="consent.css">
+</head>
+<body>
+<main>
+  <div class="wordmark"><img src="../../assets/icon-128.png" alt=""><h1>Sheepdog</h1></div>
+  <div class="rule"></div>
+
+  <!-- Shown until the user answers, and again whenever they come back to review. -->
+  <div id="ask" hidden>
+    <h1 class="big">Before Sheepdog turns on</h1>
+    <p class="lede">
+      To warn you about scam websites, Sheepdog has to look at a few things in your browser.
+      This page says exactly what, and why. <strong>Sheepdog is off, and reads and downloads nothing,
+      until you agree below.</strong>
+    </p>
+
+    <section>
+      <h2>What Sheepdog reads</h2>
+      <table class="data">
+        <thead><tr><th>What</th><th>Why</th><th>Where it goes</th></tr></thead>
+        <tbody>
+          <tr>
+            <td><strong>The address and title of each page you open</strong></td>
+            <td>To check the address against the patterns scam sites use and against public enforcement lists.</td>
+            <td id="whereSite"></td>
+          </tr>
+          <tr>
+            <td><strong>The visible text of the page</strong><br><span class="tag">only if you switch it on</span></td>
+            <td>To spot scam wording, such as demands for gift cards or a fake virus warning. Off unless you turn on "Also analyze visible page text" in settings.</td>
+            <td id="whereText"></td>
+          </tr>
+          <tr>
+            <td><strong>Your other installed extensions</strong><br><span class="tag">only if you ask for a review</span></td>
+            <td>To tell you what each one could do with the access it holds. Reads each extension's name, description, ID, whether it is switched on, where it was installed from, its web addresses and its permissions. Chrome asks your permission separately, at the moment you ask for a review.</td>
+            <td id="whereExt"></td>
+          </tr>
+        </tbody>
+      </table>
+    </section>
+
+    <section>
+      <h2>What Sheepdog downloads</h2>
+      <p id="download"></p>
+    </section>
+
+    <section>
+      <h2>What stays on your computer</h2>
+      <p>
+        Your settings, a copy of the downloaded news and reference lists, and the result of your most recent
+        extension review if you ran one. If a page triggers a warning, that warning, including the site's
+        address, is kept for up to six hours so it can be shown to you, then discarded. Sheepdog keeps no
+        history of the pages you visit. Everything is deleted when you remove the extension.
+      </p>
+    </section>
+
+    <section>
+      <h2>What Sheepdog never does</h2>
+      <ul class="never">
+        <li>It never reads what you type: no passwords, card numbers, form entries or searches.</li>
+        <li>It has no accounts, advertising, analytics or tracking of any kind.</li>
+        <li>It never sells or shares anything about you, because it never receives anything about you.</li>
+      </ul>
+      <p class="hint">The full <a id="policy" href="https://danlandeck.github.io/sheepdog/privacy.html" target="_blank" rel="noopener noreferrer">privacy policy</a> says the same thing at more length.</p>
+    </section>
+
+    <section class="decide">
+      <p>
+        By choosing <strong>Agree</strong>, you consent to Sheepdog reading the items above for the purposes above.
+        You can change your mind at any time in settings.
+      </p>
+      <div class="actions">
+        <button id="agree" class="btn primary">Agree and turn on Sheepdog</button>
+        <button id="decline" class="btn">No thanks, keep it off</button>
+      </div>
+      <p class="hint" id="current"></p>
+    </section>
+  </div>
+
+  <!-- Shown after declining. -->
+  <div id="off" hidden>
+    <h1 class="big">Sheepdog is off</h1>
+    <p class="lede">
+      That is a complete answer and nothing else is needed from you. Sheepdog is not reading the pages you
+      visit, not reading your extensions, and not downloading anything. It will not ask again.
+    </p>
+    <section>
+      <h2>What happens now</h2>
+      <ul class="never">
+        <li>You will get no scam warnings while it is off.</li>
+        <li>The toolbar icon shows <span class="tag">OFF</span>. Click it at any time to read this page again and turn Sheepdog on.</li>
+        <li>If you would rather not keep an extension that is switched off, you can remove it below.</li>
+      </ul>
+      <div class="actions">
+        <button id="review" class="btn primary">Review and turn on</button>
+        <button id="remove" class="btn">Remove Sheepdog from this browser</button>
+      </div>
+      <p class="hint" id="removeHint"></p>
+    </section>
+  </div>
+</main>
+<script src="consent.js"></script>
+</body>
+</html>

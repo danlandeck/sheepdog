@@ -13,6 +13,14 @@
     </label>
   </header>
 
+  <!-- Shown instead of everything below until the user has agreed on the consent page. -->
+  <section id="gate" class="gate" hidden>
+    <p><b>Sheepdog is off.</b></p>
+    <p>It reads nothing and downloads nothing until you have seen what it looks at and agreed to it.</p>
+    <button id="openConsent" class="btn primary">Review and turn on</button>
+  </section>
+
+  <div id="main">
   <div id="status" class="status">Connecting…</div>
 
   <nav class="tabs" role="tablist">
@@ -36,6 +44,7 @@
     <button id="refresh" class="link">Refresh feed</button>
     <button id="options" class="link">Settings</button>
   </footer>
+  </div>
 
   <script src="popup.js"></script>
 </body>

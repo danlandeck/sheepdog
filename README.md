@@ -10,9 +10,11 @@ Sheepdog™ · Copyright © 2026 Daniel Landeck · Free and open source under th
 
 **[Add Sheepdog to your browser](https://chromewebstore.google.com/detail/ikcehkgodhpojleneblggmniofmhlkdl)**. Free, with no paid tier, no upsell and no advertising.
 
-One click from the Chrome Web Store, on Chrome, Edge, Brave or any other Chromium browser. Nothing to download, no account, and nothing to configure. It works the moment it is added and updates itself.
+One click from the Chrome Web Store, on Chrome, Edge, Brave or any other Chromium browser. Nothing to download, no account, and nothing to configure. It updates itself.
 
-Sheepdog watches pages loaded after it is installed, so reload any tabs you already had open.
+The first thing Sheepdog does is show you one page listing what it reads and why, and ask whether you agree. It is switched off, reading nothing and downloading nothing, until you say yes. If you say no it stays off and does not ask again.
+
+Sheepdog watches pages loaded after it is turned on, so reload any tabs you already had open.
 
 ---
 
@@ -48,10 +50,11 @@ Then it explains why, in sentences anyone can read. No scores to interpret and n
 
 ## Privacy
 
-**Nothing about your browsing is transmitted anywhere.**
+**Nothing about your browsing is transmitted anywhere, and nothing is read until you agree.**
 
-- Sites are analyzed entirely on your own computer. The address of the page you are on is never sent anywhere, not to a server of ours and not to anyone else.
-- The extension review reads only each extension's name, install type and permission list, and scores them on your machine.
+- Sheepdog asks for your consent on a plain-language page before it does anything. Decline and it stays off. Withdraw later from settings and it stops, and deletes what it had stored.
+- To do its job it reads the address and title of each page you open. Sites are analyzed entirely on your own computer. The address of the page you are on is never sent anywhere, not to a server of ours and not to anyone else.
+- The extension review reads each extension's name, description, ID, install source, web addresses and permission list, and scores them on your machine.
 - No accounts, no sign-in, no advertising, no analytics, no tracking, no identifiers of any kind.
 - The one thing Sheepdog downloads is a public news file, identical for every user, from a single fixed address. It contains no information about you.
 - Optional deeper page analysis is off by default, and even switched on it reads the page text locally and transmits nothing.
@@ -103,6 +106,8 @@ Three decisions worth knowing about:
 
 `test/scoring.test.js` locks the relative ranking of representative real headlines, so a lexicon edit that reshuffles them fails the suite even when every unit test still passes.
 
+`test/consent.test.js` loads the real service worker against a stand-in for the browser and proves that before the user agrees, no tab is read, the installed extensions are not read, and nothing is fetched.
+
 ### Architecture
 
 There is no server. A scheduled GitHub Action fetches the sources every four hours, scores everything with the same engine the extension runs, and writes static JSON to GitHub Pages. Installed extensions read those files directly. Site and extension scoring happen entirely in the browser. Zero production dependencies, anywhere in the project.
@@ -134,7 +139,7 @@ scripts/
 
 ```bash
 node scripts/sync-shared.mjs          # after any change to /shared
-node --test "test/*.test.js"          # 60 tests
+node --test "test/*.test.js"          # 67 tests
 node scripts/validate-extension.mjs   # pre-flight before loading in Chrome
 ```
 

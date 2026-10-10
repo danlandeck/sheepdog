@@ -9,6 +9,10 @@
  *      dangerous ones.
  *   4. Degrade to fully local scoring when the backend is unreachable.
  *
+ * None of the above happens until the user has agreed to it on the consent
+ * page. See the consent section below: every path that reads a tab, reads the
+ * installed extensions or touches the network checks hasConsent() first.
+ *
  * MV3 workers get killed aggressively, so nothing lives in memory across
  * messages. Every handler reads state from chrome.storage.
  */
@@ -75,13 +79,98 @@ async function setSettings(patch) {
   return next;
 }
 
+/* ---------------------------------------------------------------- consent */
+
+/*
+ * Sheepdog does nothing until the user agrees to what it reads.
+ *
+ * Chrome's user data policy asks for two things before any handling of user
+ * data: a prominent disclosure and an affirmative yes. The consent page is the
+ * disclosure, its button is the yes, and this section is what makes the yes
+ * mean something. Until consent.status is 'granted':
+ *
+ *   - no tab address or title is read
+ *   - no page text is read
+ *   - the installed extensions are not read
+ *   - nothing is downloaded, not even the public news file
+ *   - no alarms are scheduled, so nothing wakes up to try
+ *
+ * Declining is a real answer, not a postponed one. The extension stays
+ * installed and inert, the toolbar icon says OFF, and the user is not asked
+ * again unless they open the page themselves.
+ *
+ * Bump CONSENT_VERSION whenever what the extension reads or downloads changes
+ * in a way the consent page has to describe. A stored answer for an older
+ * version counts as no answer, so everyone is asked again about the new terms.
+ */
+export const CONSENT_VERSION = 1;
+const CONSENT_PAGE = 'src/consent/consent.html';
+
+/** Storage keys that exist only because the extension has been running. */
+const COLLECTED_KEYS = ['feed', 'alerts', 'status', 'detailCache', 'lists', 'extensionAudit'];
+
+async function getConsent() {
+  const { consent } = await chrome.storage.local.get('consent');
+  if (!consent || consent.version !== CONSENT_VERSION) return { status: 'undecided' };
+  return consent;
+}
+
+async function hasConsent() {
+  return (await getConsent()).status === 'granted';
+}
+
+async function updateBadge() {
+  try {
+    const on = await hasConsent();
+    await chrome.action.setBadgeText({ text: on ? '' : 'OFF' });
+    if (!on) await chrome.action.setBadgeBackgroundColor({ color: '#6b7280' });
+    await chrome.action.setTitle({ title: on ? 'Sheepdog' : 'Sheepdog is off. Click to review what it reads and turn it on.' });
+  } catch { /* the badge is a courtesy, never a reason to fail */ }
+}
+
+function openConsentPage() {
+  return chrome.tabs.create({ url: chrome.runtime.getURL(CONSENT_PAGE) });
+}
+
+async function setConsent(granted) {
+  const consent = {
+    status: granted ? 'granted' : 'declined',
+    version: CONSENT_VERSION,
+    at: new Date().toISOString(),
+  };
+  await chrome.storage.local.set({ consent });
+
+  if (granted) {
+    // The poll alarm fires a second after it is created, which fetches the
+    // news file for the first time.
+    await rescheduleAlarms();
+  } else {
+    // Saying no, or changing your mind later, stops everything and removes
+    // whatever running had left behind. Settings are kept: they are the
+    // user's own choices, not something gathered about them.
+    await chrome.alarms.clearAll();
+    await chrome.storage.local.remove(COLLECTED_KEYS);
+    cachedIndex = null;
+    recentlyAssessed.clear();
+    try { await chrome.permissions.remove({ permissions: ['management'] }); } catch { /* never granted */ }
+  }
+  await updateBadge();
+  await pushTickerUpdate();
+  return consent;
+}
+
 /* ------------------------------------------------------------------ state */
 
 async function getState() {
   const s = await chrome.storage.local.get(['feed', 'alerts', 'status', 'detailCache']);
+  // A warning names the site that raised it, so it is not kept past its
+  // usefulness. Expired ones are dropped on read here and erased from storage
+  // on the next poll.
+  const now = Date.now();
+  const alerts = (s.alerts || []).filter((a) => now - Date.parse(a.publishedAt || 0) < ALERT_TTL_MS);
   return {
     feed: s.feed || { items: [], fetchedAt: null },
-    alerts: s.alerts || [],
+    alerts,
     status: s.status || { backend: 'unknown', lastError: null, lastPoll: null },
     detailCache: s.detailCache || {},
   };
@@ -126,9 +215,17 @@ async function fetchJson(url, init = {}, timeoutMs = 12000) {
   }
 }
 
+async function pruneAlerts() {
+  const { alerts: stored } = await chrome.storage.local.get('alerts');
+  const { alerts } = await getState();
+  if ((stored || []).length !== alerts.length) await chrome.storage.local.set({ alerts });
+}
+
 async function pollFeed() {
+  if (!(await hasConsent())) return;
   const settings = await getSettings();
   if (!settings.enabled) return;
+  await pruneAlerts();
 
   if (settings.feedMode === 'static' && !settings.feedUrl) {
     await chrome.storage.local.set({
@@ -205,6 +302,7 @@ async function localAssess(input) {
 }
 
 async function assessSite({ host, protocol, title, sampleText }) {
+  if (!(await hasConsent())) return null;
   const settings = await getSettings();
   if (!host) return null;
 
@@ -263,6 +361,7 @@ export async function hasManagementPermission() {
 }
 
 async function runExtensionAudit() {
+  if (!(await hasConsent())) return { needsConsent: true, results: [] };
   const settings = await getSettings();
   if (!settings.extensionAudit) return [];
 
@@ -365,8 +464,7 @@ const ALERT_TTL_MS = 6 * 3600 * 1000;
 
 async function addAlert(alert) {
   const { alerts } = await getState();
-  const now = Date.now();
-  const kept = alerts.filter((a) => now - Date.parse(a.publishedAt || 0) < ALERT_TTL_MS && a.id !== alert.id && !a.dismissed);
+  const kept = alerts.filter((a) => a.id !== alert.id && !a.dismissed);
   const next = [{ ...alert, publishedAt: alert.publishedAt || new Date().toISOString() }, ...kept].slice(0, 30);
   await chrome.storage.local.set({ alerts: next });
   await pushTickerUpdate();
@@ -386,6 +484,20 @@ function floorOf(settings) {
 
 async function buildTickerPayload() {
   const settings = await getSettings();
+  const consent = (await getConsent()).status;
+
+  // Without consent there is nothing to show and nothing has been read, so the
+  // payload says only that. The content script stays out of the page entirely
+  // when it sees this.
+  if (consent !== 'granted') {
+    return {
+      consent,
+      settings,
+      status: { backend: 'off', lastError: null, lastPoll: null, itemCount: 0, alertCount: 0, lastIngest: null },
+      items: [],
+    };
+  }
+
   const { feed, alerts, status } = await getState();
 
   const liveAlerts = alerts.filter((a) => !a.dismissed);
@@ -402,6 +514,7 @@ async function buildTickerPayload() {
   const items = [...liveAlerts, ...news].slice(0, 160);
 
   return {
+    consent,
     settings,
     status: { ...status, itemCount: items.length, alertCount: alerts.length, lastIngest: feed.lastIngest || null },
     items,
@@ -423,6 +536,7 @@ async function pushTickerUpdate() {
 /* ------------------------------------------------------------------ detail */
 
 async function getDetail(id) {
+  if (!(await hasConsent())) return { error: 'consent_required', message: 'Sheepdog is off' };
   const settings = await getSettings();
   const { alerts, detailCache } = await getState();
 
@@ -448,6 +562,7 @@ async function getDetail(id) {
 
 async function rescheduleAlarms(settings) {
   await chrome.alarms.clearAll();
+  if (!(await hasConsent())) return;
   const s = settings || await getSettings();
   if (!s.enabled) return;
   chrome.alarms.create('poll', { periodInMinutes: Math.max(5, Number(s.pollMinutes) || 15), when: Date.now() + 1000 });
@@ -464,14 +579,26 @@ chrome.alarms.onAlarm.addListener((alarm) => {
 chrome.runtime.onInstalled.addListener(async (details) => {
   const settings = await getSettings();
   await chrome.storage.local.set({ settings });
+  await updateBadge();
+
+  const consent = await getConsent();
+  if (consent.status !== 'granted') {
+    await chrome.alarms.clearAll();
+    // Ask once: on a fresh install, and on the update that introduces the
+    // question (or new terms) for someone who has never answered it. Someone
+    // who already said no is left alone; the toolbar icon is their way back.
+    if (details.reason === 'install' || (details.reason === 'update' && consent.status === 'undecided')) {
+      await openConsentPage();
+    }
+    return;
+  }
+
   await rescheduleAlarms(settings);
   await pollFeed();
-  if (details.reason === 'install') {
-    chrome.tabs.create({ url: chrome.runtime.getURL('src/options/options.html?welcome=1') });
-  }
 });
 
 chrome.runtime.onStartup.addListener(async () => {
+  await updateBadge();
   await rescheduleAlarms();
   await pollFeed();
 });
@@ -487,7 +614,10 @@ chrome.commands?.onCommand.addListener(async (cmd) => {
 const recentlyAssessed = new Map(); // host -> timestamp, in-memory best effort
 
 chrome.tabs.onUpdated.addListener(async (tabId, info, tab) => {
-  if (info.status !== 'complete' || !tab.url) return;
+  if (info.status !== 'complete') return;
+  // Checked before the tab's address is looked at, not after.
+  if (!(await hasConsent())) return;
+  if (!tab.url) return;
   const settings = await getSettings();
   if (!settings.enabled || !settings.siteAssessment) return;
 
@@ -540,9 +670,22 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
         sendResponse(await getDetail(msg.id));
         break;
       }
+      case 'GET_CONSENT': {
+        sendResponse(await getConsent());
+        break;
+      }
+      case 'SET_CONSENT': {
+        sendResponse(await setConsent(msg.granted === true));
+        break;
+      }
+      case 'OPEN_CONSENT': {
+        await openConsentPage();
+        sendResponse({ ok: true });
+        break;
+      }
       case 'PAGE_CONTEXT': {
         const settings = await getSettings();
-        if (!settings.deepPageAnalysis || !msg.host) { sendResponse({ ok: false }); break; }
+        if (!(await hasConsent()) || !settings.deepPageAnalysis || !msg.host) { sendResponse({ ok: false }); break; }
         const result = await assessSite({
           host: msg.host, protocol: msg.protocol, title: msg.title, sampleText: msg.sampleText,
         });
@@ -587,8 +730,8 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
       }
       case 'RUN_EXT_AUDIT': {
         const out = await runExtensionAudit();
-        // runExtensionAudit returns an array normally, or a needsPermission
-        // marker when the optional permission has not been granted yet.
+        // runExtensionAudit returns an array normally, or a needsPermission /
+        // needsConsent marker when it is not yet allowed to look.
         sendResponse(Array.isArray(out) ? { results: out } : out);
         break;
       }
@@ -610,6 +753,7 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
          * Without this, the only way to confirm the extension works is to find
          * an actual fraudulent site, which is a terrible first-run experience.
          */
+        if (!(await hasConsent())) { sendResponse({ ok: false, error: 'consent_required' }); break; }
         const host = 'paypa1-secure-login.top';
         const r = await localAssess({
           kind: 'site',
@@ -640,6 +784,7 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
         break;
       }
       case 'TEST_BACKEND': {
+        if (!(await hasConsent())) { sendResponse({ ok: false, error: 'consent_required' }); break; }
         const settings = await getSettings();
         // A store install has no server to reach. The published feed carries the
         // same figures in a static health.json next to feed.json.
