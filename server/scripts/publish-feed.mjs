@@ -123,7 +123,7 @@ const EMAIL = email || '[YOUR EMAIL]';
 const today = new Date().toISOString().slice(0, 10);
 
 await writeFile(join(outDir, 'privacy.html'), `<!doctype html>
-<meta charset="utf-8"><title>Sheepdog privacy policy</title>
+<meta charset="utf-8"><title>Sheepdog Scam Alerts privacy policy</title>
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <style>
  body{font:16px/1.65 system-ui,-apple-system,sans-serif;max-width:44rem;margin:3rem auto;padding:0 1.5rem;color:#1b2230}
@@ -132,96 +132,185 @@ await writeFile(join(outDir, 'privacy.html'), `<!doctype html>
  td,th{border-bottom:1px solid #e3e8ee;padding:.5rem .4rem;text-align:left;font-size:.95rem;vertical-align:top}
  .lead{background:#f4f1fb;border-left:4px solid #5B12C4;padding:1rem 1.2rem;border-radius:0 6px 6px 0}
  code{background:#f0f2f5;padding:.1rem .35rem;border-radius:4px;font-size:.9em}
+ li{margin:.25rem 0} a{color:#5B12C4} h2{scroll-margin-top:1rem}
 </style>
-<h1>Sheepdog privacy policy</h1>
-<p class="sub">Last updated ${today}</p>
+<h1>Sheepdog Scam Alerts: Privacy Policy</h1>
+<p class="sub">Effective date and last updated: ${today}. Applies to the Sheepdog Scam Alerts extension for Google Chrome as published in the Chrome Web Store.</p>
 
-<p class="lead"><strong>Sheepdog reads the address of the pages you open so it can warn you about
-scam websites. It does that on your own computer and sends none of it anywhere.</strong>
-It does nothing at all until you agree. No accounts, no advertising, no analytics, no tracking.</p>
+<p class="lead"><strong>Summary.</strong> Sheepdog reads the address and title of the web pages you open, and, only if you
+turn it on, the visible text of the page, so it can warn you about scam websites. If you ask it to, it also reads
+the list of your other installed extensions so it can warn you about risky ones. All of this is processed on your
+own computer. None of it is transmitted to the developer or to anyone else, none of it is sold or shared, and none
+of it is used for any purpose other than showing you those warnings. Sheepdog does nothing until you agree.</p>
 
-<h2>Your consent comes first</h2>
-<p>When Sheepdog is installed it opens a page that lists what it reads and why, and asks you to
-agree. Until you choose <strong>Agree and turn on Sheepdog</strong>, it reads nothing, checks nothing
-and downloads nothing. If you choose not to agree, it stays installed but switched off, and does
-not ask again. You can withdraw your agreement at any time in settings, which stops everything
-and deletes what Sheepdog had stored other than your settings.</p>
+<h2>Contents</h2>
+<ol>
+ <li><a href="#consent">Consent</a></li>
+ <li><a href="#collection">Data collection: what user data Sheepdog accesses</a></li>
+ <li><a href="#use">Data handling and use: how that data is used</a></li>
+ <li><a href="#storage">Data storage and retention: where it is kept and for how long</a></li>
+ <li><a href="#sharing">Data sharing and disclosure: who receives it</a></li>
+ <li><a href="#network">Network requests: exactly what leaves your browser</a></li>
+ <li><a href="#permissions">Browser permissions and why each is needed</a></li>
+ <li><a href="#security">Data security</a></li>
+ <li><a href="#limited-use">Chrome Web Store User Data Policy and Limited Use</a></li>
+ <li><a href="#controls">Your choices, access and deletion</a></li>
+ <li><a href="#children">Children</a></li>
+ <li><a href="#changes">Changes to this policy</a></li>
+ <li><a href="#contact">Contact</a></li>
+</ol>
 
-<h2>What Sheepdog reads, and what it does with it</h2>
+<h2 id="consent">1. Consent</h2>
+<p>When Sheepdog is installed, it opens a page inside the extension that describes everything it reads, why, and
+where it goes, and asks you to agree. Until you choose <strong>Agree and turn on Sheepdog</strong>:</p>
+<ul>
+ <li>no page address, page title or page text is read;</li>
+ <li>your installed extensions are not read;</li>
+ <li>nothing is downloaded and no network request of any kind is made;</li>
+ <li>no background task is scheduled.</li>
+</ul>
+<p>If you choose <strong>No thanks, keep it off</strong>, Sheepdog stays installed but inactive, and its toolbar
+icon shows OFF. You can withdraw consent at any time in settings. Withdrawing stops all activity, removes the
+optional extension-review permission, and deletes all data Sheepdog had stored except your own settings. If what
+Sheepdog reads ever changes, it asks for your consent again before doing anything new.</p>
+
+<h2 id="collection">2. Data collection: what user data Sheepdog accesses</h2>
+<p>In this policy, "accesses" means the extension reads the data on your device. Sheepdog does not transmit any of
+the data below off your device, so the developer never receives it. The table lists every category of user data the
+extension handles.</p>
 <table>
-<tr><th>What</th><th>Why</th><th>Where it goes</th></tr>
-<tr><td>The address and title of each page you open</td>
-    <td>To check the address against the patterns scam sites use and against public enforcement lists, and warn you if it looks fraudulent.</td>
-    <td>Checked on your own computer. Never transmitted: not the full address, not the domain, not a hash of it.</td></tr>
-<tr><td>The visible text of the page, up to 20,000 characters. <em>Only if you turn on "Also analyze visible page text". Off by default.</em></td>
-    <td>To spot scam wording, such as demands for gift cards or fake virus warnings.</td>
-    <td>Checked on your own computer, in memory. Never transmitted and never saved.</td></tr>
-<tr><td>Your other installed extensions: each one's name, description, ID, whether it is switched on, where it was installed from, its web addresses and its permissions. <em>Only if you ask for a review, and only after you grant Chrome's separate permission prompt.</em></td>
-    <td>To tell you what each extension could do with the access it already holds.</td>
-    <td>Checked on your own computer. Never transmitted. The most recent result is saved on your computer so you can read it.</td></tr>
+<tr><th>Data</th><th>Chrome Web Store category</th><th>When it is accessed</th></tr>
+<tr><td>Address (URL) and title of the page in the active tab. Only the host name and protocol are used for scoring; the path and query string are discarded immediately.</td>
+    <td>Web history</td>
+    <td>Each time a page finishes loading, while "Assess the site in the active tab" is on (on by default after you consent). Skipped for domains on your blocklist.</td></tr>
+<tr><td>Visible text of the page, limited to the first 20,000 characters of the main content area.</td>
+    <td>Website content</td>
+    <td>Only if you turn on "Also analyze visible page text". <strong>Off by default.</strong></td></tr>
+<tr><td>Information about your other installed extensions: name, description, extension ID, whether it is enabled, how it was installed, its update, homepage and options addresses, and its declared permissions.</td>
+    <td>None of the listed categories (extension metadata)</td>
+    <td>Only after you click to review your extensions and approve Chrome's separate permission prompt. While that permission is granted and the setting is on, the review re-runs on your computer every 12 hours.</td></tr>
 </table>
-<p>Sheepdog uses this information only to provide the warnings described here. It is never used
-for anything else, never sold, and never shared with anyone, because it never leaves your
-computer.</p>
-<p><strong>What you type is never read.</strong> Passwords, card numbers, form contents and search
-queries are not read, stored or sent.</p>
+<p><strong>Sheepdog does not access:</strong> anything you type (passwords, payment card numbers, form contents,
+search queries, messages), cookies, browsing history stored by Chrome, bookmarks, downloads, location, contacts,
+health or financial information, or authentication information. Sheepdog has no accounts and does not ask for your
+name, email address or any other personal information.</p>
+<p><strong>Sheepdog does not collect analytics, telemetry, crash reports or usage statistics</strong>, and
+contains no advertising or third-party code.</p>
 
-<h2>What leaves your browser</h2>
-<p>Downloads of public files, and nothing else:</p>
+<h2 id="use">3. Data handling and use: how that data is used</h2>
+<p>Each kind of data is used for one purpose only, which is the extension's single purpose of warning you about
+scams:</p>
+<ul>
+ <li><strong>Page address and title:</strong> compared, on your computer, against patterns used by fraudulent sites
+ (for example, lookalike spellings of bank names) and against public regulatory and enforcement lists, to produce a
+ fraud-risk score. If the score passes your alert threshold, Sheepdog shows you a warning.</li>
+ <li><strong>Page text (optional):</strong> scanned, on your computer and in memory only, for scam wording such as
+ demands for gift cards or fake virus warnings, to refine that score. The text is discarded as soon as the score is
+ calculated and is never saved.</li>
+ <li><strong>Installed extension information:</strong> scored, on your computer, for what each extension could do
+ with the access it holds, so Sheepdog can tell you which ones carry high risk.</li>
+</ul>
+<p>This data is <strong>not</strong> used for advertising, personalization, profiling, building a browsing history,
+determining creditworthiness, lending, or any purpose unrelated to the warnings described above. No human, including
+the developer, ever reads it.</p>
+
+<h2 id="storage">4. Data storage and retention: where it is kept and for how long</h2>
+<p>All storage is local, in Chrome's extension storage on your own computer. Sheepdog has no server and no database,
+and keeps no copy of your data anywhere else.</p>
 <table>
-<tr><th>Request</th><th>What it says about you</th></tr>
-<tr><td><code>feed.json</code> the scored news, every 15 minutes unless you change how often</td><td>Nothing. The same file everyone gets.</td></tr>
-<tr><td><code>lists.json</code> reference lists, once a day</td><td>Nothing. The same file everyone gets.</td></tr>
-<tr><td><code>health.json</code> the feed's status, when you open the settings page</td><td>Nothing. The same file everyone gets.</td></tr>
-<tr><td><code>items/&lt;id&gt;.json</code> one headline's detail, when you click it</td><td>That someone opened that headline. Not tied to you, and there is no account to tie it to.</td></tr>
+<tr><th>Stored item</th><th>Contains user data?</th><th>Retention</th></tr>
+<tr><td>Your settings, including any domains you add to the blocklist</td><td>Only what you enter</td><td>Until you change them or uninstall</td></tr>
+<tr><td>Your consent choice, the version you agreed to, and the time</td><td>No</td><td>Until you change it or uninstall</td></tr>
+<tr><td>Warnings shown to you, including the host name of a flagged site</td><td>Yes: the host name of a site that triggered a warning</td><td>Up to 6 hours, at most 30 at a time; deleted sooner if you dismiss them</td></tr>
+<tr><td>List of recently checked host names, so the same site is not re-checked repeatedly</td><td>Yes: host names</td><td>Held in memory only, never written to disk; each entry expires after 10 minutes, at most 500 entries, and all are cleared when Chrome closes the background worker</td></tr>
+<tr><td>Your most recent extension review result</td><td>Yes: extension metadata listed in section 2</td><td>Replaced by the next review; deleted on withdrawal of consent or uninstall</td></tr>
+<tr><td>Page text (optional feature)</td><td>Yes</td><td><strong>Never stored.</strong> Held in memory only while it is scored</td></tr>
+<tr><td>Cached public news feed, reference lists and headline details</td><td>No</td><td>Feed until the next refresh; lists up to 24 hours; headline details up to 1 hour, at most 60</td></tr>
 </table>
-<p>These are static files hosted on GitHub Pages. The requests carry no cookies and
-no identifiers, and nothing about the pages you visit. Like any web server, the host records
-standard request logs including IP addresses; those logs belong to the hosting provider
-(GitHub), are not available to or analysed by the developer, and are not connected to anything
-else. None of these downloads happens before you agree.</p>
-<p>This is not a promise layered over a service that could do otherwise. There is no
-server to receive your data, and the extension has permission to contact exactly
-one address, which you can read in its manifest.</p>
+<p>Sheepdog does not keep a record of the pages you visit. Uninstalling the extension deletes everything listed above.
+Withdrawing consent deletes everything except your settings and your consent choice.</p>
 
-<h2>Stored on your own device</h2>
-<p>Your settings, whether and when you agreed, a cached copy of the news feed and the reference
-lists, and your most recent extension review if you ran one. If a page triggers a warning, that
-warning, including the site's address, is kept for up to six hours so it can be shown to you,
-then discarded. Sheepdog keeps no history of the pages you visit. All of it stays in your
-browser and is deleted when you uninstall.</p>
+<h2 id="sharing">5. Data sharing and disclosure: who receives it</h2>
+<p><strong>No one.</strong> Sheepdog does not sell, rent, transfer, share or disclose user data to the developer or
+to any third party, including advertisers, data brokers, analytics providers or information resellers. Because the
+user data described in section 2 never leaves your device, there is nothing to share, and no third party processes
+it on the developer's behalf.</p>
+<p>The only party that can observe any request from Sheepdog is the company that hosts the public news files
+described in section 6 (GitHub, Inc., through GitHub Pages). As with any website, GitHub receives the internet (IP)
+address of the device making the download and records it in its own server logs under
+<a href="https://docs.github.com/en/site-policy/privacy-policies/github-general-privacy-statement">GitHub's privacy statement</a>.
+Those requests contain no information about the pages you visit, your page text or your extensions. The developer
+does not receive, read or have access to those logs.</p>
+<p>The developer would disclose information only if legally required to, and holds no user data that could be
+disclosed.</p>
 
-<h2>Never collected</h2>
-<p>Names, email addresses, account information, passwords, payment details, location, cookies,
-tracking identifiers, analytics or telemetry of any kind. No record of your browsing is kept
-or sent. Nothing is sold or shared with advertisers or data brokers, and nothing is used to
-determine creditworthiness or for lending purposes.</p>
-<p>Sheepdog's use of information complies with the
-<a href="https://developer.chrome.com/docs/webstore/program-policies/limited-use">Chrome Web Store User Data Policy</a>,
-including the Limited Use requirements.</p>
+<h2 id="network">6. Network requests: exactly what leaves your browser</h2>
+<p>After you consent, Sheepdog makes only the following requests, all to the same public static host. None of them
+includes cookies, identifiers, or any information about the pages you visit or your installed extensions.</p>
+<table>
+<tr><th>Request</th><th>When</th><th>What it reveals about you</th></tr>
+<tr><td><code>feed.json</code>: public scam and fraud news</td><td>Every 15 minutes, or the interval you set</td><td>Nothing beyond your IP address to the host. The same file for every user.</td></tr>
+<tr><td><code>lists.json</code>: public regulatory reference lists</td><td>At most once a day</td><td>Nothing beyond your IP address to the host. The same file for every user.</td></tr>
+<tr><td><code>health.json</code>: the feed's status</td><td>When you open the settings page or click to test the feed</td><td>Nothing beyond your IP address to the host. The same file for every user.</td></tr>
+<tr><td><code>items/&lt;id&gt;.json</code>: detail for one news headline</td><td>Only when you click a headline</td><td>That a headline was opened, from your IP address. Not linked to any account; there are no accounts.</td></tr>
+</table>
+<p>You can verify this yourself: Sheepdog is open source, and its complete code is published at
+<a href="https://github.com/danlandeck/sheepdog">github.com/danlandeck/sheepdog</a>.</p>
 
-<h2>Your controls</h2>
+<h2 id="permissions">7. Browser permissions and why each is needed</h2>
+<table>
+<tr><th>Permission</th><th>Why Sheepdog needs it</th></tr>
+<tr><td><code>tabs</code></td><td>To read the address and title of the page you open, so it can be checked for fraud.</td></tr>
+<tr><td>Access to sites (<code>&lt;all_urls&gt;</code> and a content script on web pages)</td><td>To show a warning on the page you are viewing, and, if you turn it on, to read the page's visible text for local analysis. Sheepdog uses this access only to read and display on the page in front of you; it does not use it to send data to any site.</td></tr>
+<tr><td><code>storage</code></td><td>To keep the items listed in section 4 on your computer.</td></tr>
+<tr><td><code>alarms</code></td><td>To refresh the public news file on a schedule and re-run the extension review.</td></tr>
+<tr><td><code>management</code> (optional)</td><td>Requested only when you ask for an extension review, through Chrome's own prompt. Used only to read the information in section 2. You can remove it at any time.</td></tr>
+</table>
+
+<h2 id="security">8. Data security</h2>
+<p>User data stays inside Chrome's extension storage on your own device, which is isolated from websites and other
+extensions. All network requests use HTTPS. Because no user data is transmitted or stored off your device, there is
+no server copy that could be breached.</p>
+
+<h2 id="limited-use">9. Chrome Web Store User Data Policy and Limited Use</h2>
+<p>The use of information received by Sheepdog adheres to the
+<a href="https://developer.chrome.com/docs/webstore/program-policies/user-data-faq">Chrome Web Store User Data Policy</a>,
+including the <a href="https://developer.chrome.com/docs/webstore/program-policies/limited-use">Limited Use</a> requirements.
+Specifically, Sheepdog:</p>
+<ul>
+ <li>uses user data only to provide or improve its single purpose of warning you about scams, which is prominent in its user interface;</li>
+ <li>does not transfer user data to third parties, except as required by law, for security purposes, or as part of a merger or acquisition with your notice (none of which currently applies, as no user data leaves your device);</li>
+ <li>does not use or transfer user data for personalized advertising;</li>
+ <li>does not use or transfer user data to determine creditworthiness or for lending purposes;</li>
+ <li>does not allow humans to read user data.</li>
+</ul>
+
+<h2 id="controls">10. Your choices, access and deletion</h2>
 <table>
 <tr><th>You want to</th><th>Do this</th></tr>
 <tr><td>Not turn it on at all</td><td>Choose "No thanks, keep it off" on the first page it shows you</td></tr>
-<tr><td>Withdraw your agreement later</td><td>Choose "Turn Sheepdog off and withdraw consent" in settings</td></tr>
-<tr><td>Stop site checking</td><td>Turn off "Assess the site in the active tab" in settings</td></tr>
+<tr><td>Withdraw consent and delete stored data</td><td>Choose "Turn Sheepdog off and withdraw consent" in settings</td></tr>
+<tr><td>Stop page-address checking</td><td>Turn off "Assess the site in the active tab" in settings</td></tr>
 <tr><td>Stop page-text analysis</td><td>Turn off "Also analyze visible page text" (off by default)</td></tr>
-<tr><td>Stop it on one site</td><td>Add that domain to the blocklist in settings</td></tr>
-<tr><td>Revoke extension-review access</td><td>Withdraw consent in settings, or remove the permission in Chrome's extension settings</td></tr>
+<tr><td>Exclude a specific site</td><td>Add that domain to the blocklist in settings</td></tr>
+<tr><td>Stop extension reviews</td><td>Turn off the extension review setting, or remove the permission in Chrome's extension settings</td></tr>
+<tr><td>See what is stored</td><td>Open the Sheepdog popup for current warnings and your latest extension review; open settings for your settings and consent status</td></tr>
 <tr><td>Delete everything</td><td>Uninstall the extension</td></tr>
 </table>
+<p>Because the developer holds no data about you, there is nothing to request access to or delete on the developer's
+side. You can still contact the developer with any privacy question.</p>
 
-<h2>Children</h2>
-<p>Sheepdog is not directed at children and does not knowingly collect information
-from anyone under 13. It does not collect information from anyone.</p>
+<h2 id="children">11. Children</h2>
+<p>Sheepdog is not directed at children under 13 and does not knowingly collect personal information from anyone,
+including children.</p>
 
-<h2>Changes</h2>
-<p>If what the extension does with data changes, this policy is updated and the date
-above revised.</p>
+<h2 id="changes">12. Changes to this policy</h2>
+<p>If Sheepdog's handling of user data changes, this policy will be updated before the change is released, the date
+at the top will be revised, and, for any change to what the extension reads or where data goes, the extension will
+ask for your consent again before the new behavior takes effect.</p>
 
-<h2>Contact</h2>
-<p>${EMAIL}</p>
+<h2 id="contact">13. Contact</h2>
+<p>Publisher: ${OWNER}<br>Email: <a href="mailto:${EMAIL}">${EMAIL}</a></p>
 <p class="sub" style="margin-top:2.5rem">Sheepdog&trade; &copy; ${new Date().getFullYear()} ${OWNER}. Open source under the Apache License 2.0.</p>
 `, 'utf8');
 
